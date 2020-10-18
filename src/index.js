@@ -4,10 +4,17 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+// eslint-disable-next-line no-unused-expressions
+process.env.NODE_ENV === 'development'
+  ? import('vconsole').then(({ default: VConsole }) => {
+      window._VConsole = new VConsole();
+    })
+  : null;
+
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  // <React.StrictMode>
+  <App />,
+  // </React.StrictMode>,
   document.getElementById('root')
 );
 
