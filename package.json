@@ -6,15 +6,22 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
+    "axios": "^0.20.0",
+    "qs": "^6.9.4",
     "react": "^16.14.0",
+    "react-cropper": "^2.1.4",
     "react-dom": "^16.14.0",
-    "react-scripts": "3.4.3"
+    "react-scripts": "3.4.3",
+    "react-webcam": "^5.2.1",
+    "swr": "^0.3.5",
+    "vconsole": "^3.3.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "analyze": "source-map-explorer 'build/static/js/*.js' --html"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -30,5 +37,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "source-map-explorer": "^2.5.0"
   }
 }
