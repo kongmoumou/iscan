@@ -1,15 +1,23 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import './App.css';
+import './App.scss';
 import Webcam from 'react-webcam';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import useSWR from 'swr';
 import axios from './utils/axios';
+import { useSpring, animated as a } from 'react-spring';
 
 const videoConstraints = {
-  // width: window.innerWidth,
-  // height: window.innerHeight * 0.7,
+  // NOTE: width -> height ?
+  height: window.innerWidth * devicePixelRatio * 2.5,
+  width: window.innerHeight * 0.7 * devicePixelRatio * 2.5,
   facingMode: 'environment',
+};
+
+const frontVideoConstraints = {
+  height: window.innerWidth * devicePixelRatio * 2,
+  width: window.innerHeight * 0.7 * devicePixelRatio * 2,
+  facingMode: 'user',
 };
 
 const fetchAnimeSearchRes = (image) => {
@@ -72,10 +80,34 @@ const WebcamCapture = () => {
 
   const { data, isValidating, error } = useSWR(croppedImg, fetchAnimeSearchRes);
 
+  useEffect(() => {
+    if (webcamRef.current) {
+      setTimeout(() => {
+        console.info('cam', webcamRef.current);
+        console.info(
+          'track',
+          webcamRef.current.stream.getVideoTracks()[0].getConstraints()
+        );
+      }, 1000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [webcamRef.current]);
+
+  const [cam, setCam] = useState(1);
+  const handleSwitchCam = useCallback(() => {
+    setCam((currentCam) => (currentCam === 1 ? 0 : 1));
+  }, []);
+
+  const { transform, opacity } = useSpring({
+    opacity: cam ? 1 : 0,
+    transform: `perspective(1000px) rotateY(${cam ? 180 : 0}deg)`,
+    config: { mass: 5, tension: 500, friction: 80 },
+  });
+
   if (croppedImg) {
     return (
       <>
-        <img src={croppedImg} />
+        <img src={croppedImg} style={{ width: '100%' }} />
         <div>
           <button onClick={handleBackClick}>back</button>
         </div>
@@ -114,18 +146,49 @@ const WebcamCapture = () => {
 
   return (
     <>
-      <Webcam
-        audio={false}
-        height={window.innerHeight * 0.7}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        width={window.innerWidth}
-        videoConstraints={videoConstraints}
-        imageSmoothing={false}
-        forceScreenshotSourceSize={true}
-      />
+      <div className="cam__container">
+        <a.div
+          className="cam__media"
+          style={{ opacity: opacity.interpolate((o) => 1 - o), transform }}
+        >
+          {!cam && (
+            <Webcam
+              audio={false}
+              height={window.innerHeight * 0.7}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              width={window.innerWidth}
+              videoConstraints={videoConstraints}
+              imageSmoothing={false}
+              forceScreenshotSourceSize={true}
+            />
+          )}
+        </a.div>
+        <a.div
+          className="cam__media"
+          style={{
+            opacity,
+            transform: transform.interpolate((t) => `${t} rotateY(180deg)`),
+          }}
+        >
+          {!!cam && (
+            <Webcam
+              audio={false}
+              height={window.innerHeight * 0.7}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              width={window.innerWidth}
+              videoConstraints={frontVideoConstraints}
+              imageSmoothing={false}
+              forceScreenshotSourceSize={true}
+              mirrored={true}
+            />
+          )}
+        </a.div>
+      </div>
       <div>
         <button onClick={capture}>Capture photo</button>
+        <button onClick={handleSwitchCam}>switch cam</button>
       </div>
     </>
   );
