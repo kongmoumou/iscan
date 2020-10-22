@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useCallback, useState } from 'react';
 import './App.scss';
 import Webcam from 'react-webcam';
 import Cropper from 'react-cropper';
@@ -6,6 +6,10 @@ import 'cropperjs/dist/cropper.css';
 import useSWR from 'swr';
 import axios from './utils/axios';
 import { useSpring, animated as a } from 'react-spring';
+
+// face detection
+import * as faceApi from 'face-api.js';
+import { interpolateAgePredictions } from './utils/faceHelper';
 
 const videoConstraints = {
   // NOTE: width -> height ?
@@ -86,17 +90,87 @@ const WebcamCapture = () => {
         console.info('cam', webcamRef.current);
         console.info(
           'track',
-          webcamRef.current.stream.getVideoTracks()[0].getConstraints()
+          webcamRef.current.stream?.getVideoTracks()[0].getConstraints()
         );
       }, 1000);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webcamRef.current]);
 
   const [cam, setCam] = useState(1);
   const handleSwitchCam = useCallback(() => {
     setCam((currentCam) => (currentCam === 1 ? 0 : 1));
   }, []);
+
+  // face effect
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const frameIdRef = useRef();
+  useLayoutEffect(() => {
+    // 后置不检测
+    if (cam === 1 || !videoLoaded) {
+      return () => {
+        setVideoLoaded(false);
+      };
+    }
+
+    // already init
+    if (frameIdRef.current) {
+      return () => {
+        cancelAnimationFrame(frameIdRef.current);
+        frameIdRef.current = null;
+      };
+    }
+
+    async function initFaceApi() {
+      await faceApi.nets.tinyFaceDetector.load('/models');
+      await faceApi.nets.ageGenderNet.load('/models');
+    }
+
+    async function detectFace() {
+
+      const videoEl = webcamRef.current.video;
+
+      const result = await faceApi
+        // .detectSingleFace(videoEl, new faceApi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.5 }))
+        .detectSingleFace(videoEl, new faceApi.TinyFaceDetectorOptions())
+        .withAgeAndGender();
+
+      // updateTimeStats(Date.now() - ts);
+      console.info('frame Id', frameIdRef.current);
+
+      if (result) {
+        const canvas = document.querySelector('.face__overlay');
+        if (canvas) {
+          const dims = faceApi.matchDimensions(canvas, videoEl, true);
+  
+          const resizedResult = faceApi.resizeResults(result, dims);
+
+          console.log(resizedResult)
+          // draw box
+          faceApi.draw.drawDetections(canvas, resizedResult);
+          const { age, gender, genderProbability } = resizedResult;
+  
+          // interpolate gender predictions over last 30 frames
+          // to make the displayed age more stable
+          const interpolatedAge = interpolateAgePredictions(age);
+          new faceApi.draw.DrawTextField(
+            [
+              `${faceApi.utils.round(interpolatedAge, 0)} years`,
+              `${gender} (${faceApi.utils.round(genderProbability)})`,
+            ],
+            result.detection.box.bottomLeft
+          ).draw(canvas);
+        }
+      }
+
+      frameIdRef.current = requestAnimationFrame(detectFace);
+    }
+
+    initFaceApi().then(() => {
+      console.info('face model loaded~');
+      detectFace();
+    });
+  }, [cam, videoLoaded]);
 
   const { transform, opacity } = useSpring({
     opacity: cam ? 1 : 0,
@@ -152,16 +226,22 @@ const WebcamCapture = () => {
           style={{ opacity: opacity.interpolate((o) => 1 - o), transform }}
         >
           {!cam && (
-            <Webcam
-              audio={false}
-              height={window.innerHeight * 0.7}
-              ref={webcamRef}
-              screenshotFormat="image/jpeg"
-              width={window.innerWidth}
-              videoConstraints={videoConstraints}
-              imageSmoothing={false}
-              forceScreenshotSourceSize={true}
-            />
+            <>
+              <Webcam
+                audio={false}
+                height={window.innerHeight * 0.7}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                width={window.innerWidth}
+                videoConstraints={frontVideoConstraints}
+                imageSmoothing={false}
+                forceScreenshotSourceSize={true}
+                mirrored={true}
+                // NOTE: init face-api after loaded!!!
+                onLoadedMetadata={() => setVideoLoaded(true)}
+              />
+              <canvas className="face__overlay" />
+            </>
           )}
         </a.div>
         <a.div
@@ -178,10 +258,9 @@ const WebcamCapture = () => {
               ref={webcamRef}
               screenshotFormat="image/jpeg"
               width={window.innerWidth}
-              videoConstraints={frontVideoConstraints}
+              videoConstraints={videoConstraints}
               imageSmoothing={false}
               forceScreenshotSourceSize={true}
-              mirrored={true}
             />
           )}
         </a.div>
