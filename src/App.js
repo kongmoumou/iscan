@@ -15,6 +15,9 @@ import { useUpdateEffect } from 'react-use';
 // TODO: update
 import Result from './components/Result';
 
+import Toast from 'antd-mobile/es/toast';
+import 'antd-mobile/es/toast/style/index.css';
+
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/swiper.scss';
@@ -23,6 +26,9 @@ import 'swiper/swiper.scss';
 import * as faceApi from 'face-api.js';
 import { interpolateAgePredictions } from './utils/faceHelper';
 import AnimeApi from './components/AnimeApi';
+
+// Toast config
+Toast.config({ duration: 1, mask: false });
 
 const videoConstraints = {
   // NOTE: width -> height ?
@@ -134,6 +140,7 @@ const WebcamCapture = ({ onCropDone }) => {
     async function initFaceApi() {
       await faceApi.nets.tinyFaceDetector.load('/models');
       await faceApi.nets.ageGenderNet.load('/models');
+      await faceApi.nets.faceExpressionNet.load('/models');
     }
 
     async function detectFace() {
@@ -142,10 +149,10 @@ const WebcamCapture = ({ onCropDone }) => {
       const result = await faceApi
         // .detectSingleFace(videoEl, new faceApi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.5 }))
         .detectSingleFace(videoEl, new faceApi.TinyFaceDetectorOptions())
-        .withAgeAndGender();
+        .withAgeAndGender()
+        .withFaceExpressions();
 
-      // updateTimeStats(Date.now() - ts);
-      console.info('frame Id', frameIdRef.current);
+      // console.info('frame Id', frameIdRef.current);
 
       if (result) {
         const canvas = document.querySelector('.face__overlay');
@@ -155,20 +162,32 @@ const WebcamCapture = ({ onCropDone }) => {
           const resizedResult = faceApi.resizeResults(result, dims);
 
           console.log(resizedResult);
-          // draw box
-          faceApi.draw.drawDetections(canvas, resizedResult);
-          const { age, gender, genderProbability } = resizedResult;
+          // draw default detection box
+          // faceApi.draw.drawDetections(canvas, resizedResult);
+          const { age, gender, genderProbability, expressions } = resizedResult;
+
+          const interpolatedAge = interpolateAgePredictions(age);
+
+          Toast.info(
+            `性别: ${gender}\n年龄: ${interpolatedAge.toFixed(1)}\n表情: ${
+              expressions?.asSortedArray()[0].expression
+            }`
+          );
 
           // interpolate gender predictions over last 30 frames
           // to make the displayed age more stable
-          const interpolatedAge = interpolateAgePredictions(age);
-          new faceApi.draw.DrawTextField(
-            [
-              `${faceApi.utils.round(interpolatedAge, 0)} years`,
-              `${gender} (${faceApi.utils.round(genderProbability)})`,
-            ],
-            result.detection.box.bottomLeft
-          ).draw(canvas);
+          // draw default result label
+          // new faceApi.draw.DrawTextField(
+          //   [
+          //     `${faceApi.utils.round(interpolatedAge, 0)} years`,
+          //     `${gender} (${faceApi.utils.round(genderProbability)})`,
+          //   ],
+          //   result.detection.box.bottomLeft
+          // ).draw(canvas);
+          new faceApi.draw.DrawBox(resizedResult.detection.box, {
+            boxColor: '#07c160',
+            lineWidth: 5,
+          }).draw(canvas);
         }
       }
 

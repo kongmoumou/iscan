@@ -80,6 +80,8 @@ video {
   top: 0;
   bottom: 0;
   height: 100%;
+  // for mirror effect
+  transform: scaleX(-1);
 }
 
 .selector__swiper {
@@ -101,4 +103,13 @@ video {
   height: 6px;
   border-radius: 3px;
   background-color: #fff;
+}
+
+.am-toast.am-toast-nomask {
+  top: 10vh !important;
+
+  .am-toast-text {
+    font-size: 16px;
+    white-space: pre-line;
+  }
 }
