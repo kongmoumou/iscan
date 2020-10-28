@@ -32,8 +32,8 @@ const videoConstraints = {
 };
 
 const frontVideoConstraints = {
-  height: window.innerWidth * devicePixelRatio * 2,
-  width: window.innerHeight * 0.7 * devicePixelRatio * 2,
+  height: window.innerWidth * devicePixelRatio,
+  width: window.innerHeight * 0.7 * devicePixelRatio,
   facingMode: 'user',
 };
 
@@ -299,7 +299,10 @@ function App() {
           slideToClickedSlide
           spaceBetween={50}
           slidesPerView="auto"
-          onSlideChange={(e) => console.log('slide change', e)}
+          onSlideChange={(e) => {
+            window.navigator.vibrate(50);
+            console.log('slide change', e);
+          }}
           // onSwiper={(swiper) => console.log(swiper)}
         >
           <SwiperSlide>识物</SwiperSlide>
