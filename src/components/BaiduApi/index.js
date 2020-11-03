@@ -9,13 +9,13 @@ const fetchBaiduSearchRes = (image) => {
     `https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general?${qs.stringify(
       { access_token: process.env.REACT_APP_BAIDU_KEY }
     )}`,
-    qs.stringify({ image, baike_num: 2 }),
+    `image=${encodeURIComponent(image)}&baike_num=2`,
     { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
   );
 };
 
 export default function BaiduApi({ img = '' }) {
-  const formatedImg = img.replace(/^data:image\/\w+;base64,/, '');
+  const formatedImg = img.substr(img.indexOf(',') + 1);
 
   const { data, isValidating, error } = useSWR(
     formatedImg,
