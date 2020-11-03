@@ -4,8 +4,6 @@ import qs from 'qs';
 import axios from '../../utils/axios';
 import Result, { STATE } from '../Result';
 
-alert(process.env.REACT_APP_BAIDU_KEY);
-
 const fetchBaiduSearchRes = (image) => {
   return axios.post(
     `https://aip.baidubce.com/rest/2.0/image-classify/v2/advanced_general?${qs.stringify(
