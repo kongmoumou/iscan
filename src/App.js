@@ -17,6 +17,8 @@ import Result from './components/Result';
 
 import Toast from 'antd-mobile/es/toast';
 import 'antd-mobile/es/toast/style/index.css';
+// for loading animation 
+import 'antd-mobile/es/icon/style/index.css';
 
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -24,7 +26,11 @@ import 'swiper/swiper.scss';
 
 // face detection
 import * as faceApi from 'face-api.js';
-import { interpolateAgePredictions } from './utils/faceHelper';
+import {
+  interpolateAgePredictions,
+  gender2Emoji,
+  expression2Emoji,
+} from './utils/faceHelper';
 import AnimeApi from './components/AnimeApi';
 
 // Toast config
@@ -41,26 +47,6 @@ const frontVideoConstraints = {
   height: window.innerWidth * devicePixelRatio,
   width: window.innerHeight * 0.7 * devicePixelRatio,
   facingMode: 'user',
-};
-
-const AniemePreview = ({ data }) => {
-  useEffect(() => {
-    // alert(JSON.stringify(data));
-  }, []);
-
-  return (
-    <div>
-      <img
-        src={`https://trace.moe/thumbnail.php?anilist_id=${
-          data?.anilist_id
-        }&file=${encodeURIComponent(data?.filename)}&t=${data?.at}&token=${
-          data?.tokenthumb
-        }`}
-        style={{ width: '100%', display: 'block' }}
-      />
-      <div>{data?.title_chinese}</div>
-    </div>
-  );
 };
 
 const WebcamCapture = ({ onCropDone }) => {
@@ -123,18 +109,23 @@ const WebcamCapture = ({ onCropDone }) => {
   const frameIdRef = useRef();
   useLayoutEffect(() => {
     // 后置不检测
-    if (cam === 1 || !videoLoaded) {
+    if (cam === 1) {
+      console.log('使用后置 cam');
       return () => {
         setVideoLoaded(false);
       };
     }
 
-    // already init
-    if (frameIdRef.current) {
-      return () => {
-        cancelAnimationFrame(frameIdRef.current);
-        frameIdRef.current = null;
-      };
+    if (!videoLoaded) {
+      // do nothing
+      return;
+    }
+
+    console.log('detecting...');
+
+    // show loading toast
+    if (!faceApi.nets.tinyFaceDetector.isLoaded) {
+      Toast.loading('加载模型中...', 15);
     }
 
     async function initFaceApi() {
@@ -169,9 +160,11 @@ const WebcamCapture = ({ onCropDone }) => {
           const interpolatedAge = interpolateAgePredictions(age);
 
           Toast.info(
-            `性别: ${gender}\n年龄: ${interpolatedAge.toFixed(1)}\n表情: ${
+            `性别: ${gender2Emoji(gender)}\n年龄: ${interpolatedAge.toFixed(
+              1
+            )}\n表情: ${expression2Emoji(
               expressions?.asSortedArray()[0].expression
-            }`
+            )}`
           );
 
           // interpolate gender predictions over last 30 frames
@@ -198,6 +191,16 @@ const WebcamCapture = ({ onCropDone }) => {
       console.info('face model loaded~');
       detectFace();
     });
+
+    // clear face api effect
+    return () => {
+      if (frameIdRef.current) {
+        console.log('cancel face api task')
+        cancelAnimationFrame(frameIdRef.current);
+        frameIdRef.current = null;
+      }
+      setVideoLoaded(false);
+    };
   }, [cam, videoLoaded]);
 
   const { transform, opacity } = useSpring({
