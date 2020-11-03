@@ -76,7 +76,12 @@ export default function Result({ children, state = STATE.LOADING }) {
               />
               <div className="result__content">
                 {state === STATE.LOADING ? (
-                  <GridLoader size={10} color="#181818" className="result__spinner" />
+                  <GridLoader
+                    css={{ margin: 'auto' }}
+                    size={10}
+                    color="#181818"
+                    className="result__spinner"
+                  />
                 ) : (
                   children
                 )}
