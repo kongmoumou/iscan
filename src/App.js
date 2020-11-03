@@ -32,9 +32,31 @@ import {
   expression2Emoji,
 } from './utils/faceHelper';
 import AnimeApi from './components/AnimeApi';
+import BaiduApi from './components/BaiduApi';
+// import FanyiApi from './components/FanyiApi';
 
 // Toast config
 Toast.config({ duration: 1, mask: false });
+
+const apiList = [
+  {
+    name: '识物',
+    component: BaiduApi,
+  },
+  {
+    name: '识文',
+    component: null,
+  },
+  {
+    name: '识人',
+    component: null,
+    canCapture: false,
+  },
+  {
+    name: '识番',
+    component: AnimeApi,
+  },
+];
 
 const videoConstraints = {
   // NOTE: width -> height ?
@@ -189,6 +211,7 @@ const WebcamCapture = ({ onCropDone }) => {
 
     initFaceApi().then(() => {
       console.info('face model loaded~');
+      Toast.hide();
       detectFace();
     });
 
@@ -298,6 +321,7 @@ const WebcamCapture = ({ onCropDone }) => {
 function App() {
   const [shouldShowDrawer, setShouldShowDrawer] = useState(0);
   const [img, setImg] = useState();
+  const apiComRef = useRef(apiList[0].component);
 
   return (
     <div className="App">
@@ -324,17 +348,17 @@ function App() {
           onSlideChange={(e) => {
             window.navigator.vibrate(50);
             console.log('slide change', e);
+            apiComRef.current = apiList[e.activeIndex].component;
           }}
           // onSwiper={(swiper) => console.log(swiper)}
         >
-          <SwiperSlide>识物</SwiperSlide>
-          <SwiperSlide>识文</SwiperSlide>
-          <SwiperSlide>识人</SwiperSlide>
-          <SwiperSlide>识番</SwiperSlide>
+          {apiList.map((api) => {
+            return (<SwiperSlide>{api.name}</SwiperSlide>);
+          })}
         </Swiper>
         <div className="selector__indicator" />
       </div>
-      {img && <AnimeApi img={img} />}
+      {img && <apiComRef.current img={img} />}
     </div>
   );
 }
