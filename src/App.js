@@ -12,17 +12,17 @@ import 'cropperjs/dist/cropper.css';
 import { useSpring, animated as a } from 'react-spring';
 import { useUpdateEffect } from 'react-use';
 
-// TODO: update
-import Result from './components/Result';
-
 import Toast from 'antd-mobile/es/toast';
 import 'antd-mobile/es/toast/style/index.css';
-// for loading animation 
+// for loading animation
 import 'antd-mobile/es/icon/style/index.css';
 
 // Swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/swiper.scss';
+
+// icon
+import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
 
 // face detection
 import * as faceApi from 'face-api.js';
@@ -51,6 +51,7 @@ const apiList = [
     name: '识人',
     component: null,
     canCapture: false,
+    front: true,
   },
   {
     name: '识番',
@@ -62,18 +63,22 @@ const videoConstraints = {
   // NOTE: width -> height ?
   // height: window.innerWidth * devicePixelRatio * 2.5,
   // width: window.innerHeight * 0.7 * devicePixelRatio * 2.5,
-  height: window.innerWidth * devicePixelRatio,
-  width: window.innerHeight * 0.7 * devicePixelRatio,
+  height: window.innerWidth * devicePixelRatio * 1.5,
+  width: (window.innerHeight - 64) * devicePixelRatio * 1.5,
   facingMode: 'environment',
 };
 
 const frontVideoConstraints = {
   height: window.innerWidth * devicePixelRatio,
-  width: window.innerHeight * 0.7 * devicePixelRatio,
+  width: (window.innerHeight - 64) * devicePixelRatio,
   facingMode: 'user',
 };
 
-const WebcamCapture = ({ onCropDone }) => {
+const WebcamCapture = ({
+  onCropDone,
+  camConstraints = videoConstraints,
+  shouldShowCapture = true,
+}) => {
   const webcamRef = useRef(null);
   const cropperRef = useRef();
 
@@ -123,10 +128,13 @@ const WebcamCapture = ({ onCropDone }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webcamRef.current]);
 
-  const [cam, setCam] = useState(1);
-  const handleSwitchCam = useCallback(() => {
-    setCam((currentCam) => (currentCam === 1 ? 0 : 1));
-  }, []);
+  // use prop now
+  // const [cam, setCam] = useState(1);
+  // const handleSwitchCam = useCallback(() => {
+  //   setCam((currentCam) => (currentCam === 1 ? 0 : 1));
+  // }, []);
+
+  const cam = camConstraints === videoConstraints ? 1 : 0;
 
   // face effect
   const [videoLoaded, setVideoLoaded] = useState(false);
@@ -220,7 +228,7 @@ const WebcamCapture = ({ onCropDone }) => {
     // clear face api effect
     return () => {
       if (frameIdRef.current) {
-        console.log('cancel face api task')
+        console.log('cancel face api task');
         cancelAnimationFrame(frameIdRef.current);
         frameIdRef.current = null;
       }
@@ -250,16 +258,23 @@ const WebcamCapture = ({ onCropDone }) => {
       <>
         <Cropper
           src={capturedImg}
-          // style={{ height: 400, width: '100%' }}
+          style={{ height: '100%', width: '100%' }}
+          className="cam-cropper"
           // Cropper.js options
-          initialAspectRatio={16 / 9}
+          dragMode="move"
+          background={false}
+          initialAspectRatio={1}
           guides={false}
           crop={handleCrop}
           ref={cropperRef}
         />
-        <div>
-          <button onClick={handleBackClick}>back</button>
-          <button onClick={handleDoneClick}>done</button>
+        <div key="captured">
+          <button className="crop-btn back" onClick={handleBackClick}>
+            <CloseOutlined style={{ fontSize: 20, color: '#07c160' }} />
+          </button>
+          <button className="crop-btn done" onClick={handleDoneClick}>
+            <CheckOutlined style={{ fontSize: 20, color: '#fa5151' }} />
+          </button>
         </div>
       </>
     );
@@ -276,10 +291,8 @@ const WebcamCapture = ({ onCropDone }) => {
             <>
               <Webcam
                 audio={false}
-                height={window.innerHeight * 0.7}
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
-                width={window.innerWidth}
                 videoConstraints={frontVideoConstraints}
                 imageSmoothing={false}
                 forceScreenshotSourceSize={true}
@@ -301,10 +314,8 @@ const WebcamCapture = ({ onCropDone }) => {
           {!!cam && (
             <Webcam
               audio={false}
-              height={window.innerHeight * 0.7}
               ref={webcamRef}
               screenshotFormat="image/jpeg"
-              width={window.innerWidth}
               videoConstraints={videoConstraints}
               imageSmoothing={false}
               forceScreenshotSourceSize={true}
@@ -312,34 +323,39 @@ const WebcamCapture = ({ onCropDone }) => {
           )}
         </a.div>
       </div>
-      <div>
-        <button onClick={capture}>Capture photo</button>
-        <button onClick={handleSwitchCam}>switch cam</button>
+      <div key="streaming">
+        <button
+          className={`capture-btn ${shouldShowCapture ? '' : 'hidden'}`}
+          onClick={capture}
+        />
+        {/* <button onClick={handleSwitchCam}>switch cam</button> */}
       </div>
     </>
   );
 };
 
 function App() {
-  const [shouldShowDrawer, setShouldShowDrawer] = useState(0);
   const [img, setImg] = useState();
   const apiComRef = useRef(apiList[0].component);
+  const [currentApi, setCurrentApi] = useState(0);
+
+  const camConstraints = apiList[currentApi].front
+    ? frontVideoConstraints
+    : videoConstraints;
+  const shouldShowCapture =
+    apiList[currentApi].canCapture === false ? false : true;
 
   return (
     <div className="App">
-      <WebcamCapture
-        onCropDone={(croppedImg) => {
-          setImg(croppedImg);
-        }}
-      />
-      <button
-        onClick={() => {
-          setShouldShowDrawer((state) => state + 1);
-        }}
-      >
-        show drawer
-      </button>
-      {!!shouldShowDrawer && <Result key={shouldShowDrawer} />}
+      <div className="app__main">
+        <WebcamCapture
+          onCropDone={(croppedImg) => {
+            setImg(croppedImg);
+          }}
+          camConstraints={camConstraints}
+          shouldShowCapture={shouldShowCapture}
+        />
+      </div>
       <div className="selector__container">
         <Swiper
           className="selector__swiper"
@@ -351,11 +367,12 @@ function App() {
             window.navigator.vibrate(50);
             console.log('slide change', e);
             apiComRef.current = apiList[e.activeIndex].component;
+            setCurrentApi(e.activeIndex);
           }}
           // onSwiper={(swiper) => console.log(swiper)}
         >
           {apiList.map((api) => {
-            return (<SwiperSlide>{api.name}</SwiperSlide>);
+            return <SwiperSlide>{api.name}</SwiperSlide>;
           })}
         </Swiper>
         <div className="selector__indicator" />
