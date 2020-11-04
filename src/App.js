@@ -33,7 +33,7 @@ import {
 } from './utils/faceHelper';
 import AnimeApi from './components/AnimeApi';
 import BaiduApi from './components/BaiduApi';
-// import FanyiApi from './components/FanyiApi';
+import FanyiApi from './components/FanyiApi';
 
 // Toast config
 Toast.config({ duration: 1, mask: false });
@@ -45,7 +45,7 @@ const apiList = [
   },
   {
     name: '识文',
-    component: null,
+    component: FanyiApi,
   },
   {
     name: '识人',
@@ -60,8 +60,10 @@ const apiList = [
 
 const videoConstraints = {
   // NOTE: width -> height ?
-  height: window.innerWidth * devicePixelRatio * 2.5,
-  width: window.innerHeight * 0.7 * devicePixelRatio * 2.5,
+  // height: window.innerWidth * devicePixelRatio * 2.5,
+  // width: window.innerHeight * 0.7 * devicePixelRatio * 2.5,
+  height: window.innerWidth * devicePixelRatio,
+  width: window.innerHeight * 0.7 * devicePixelRatio,
   facingMode: 'environment',
 };
 
@@ -358,7 +360,7 @@ function App() {
         </Swiper>
         <div className="selector__indicator" />
       </div>
-      {img && <apiComRef.current img={img} />}
+      {img && apiComRef.current && <apiComRef.current img={img} />}
     </div>
   );
 }
