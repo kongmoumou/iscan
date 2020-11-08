@@ -1,0 +1,32 @@
+.fanyi__ocr {
+  white-space: pre-line;
+  margin: 0 12px 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.fanyi__action {
+  margin: 0 12px;
+  text-align: right;
+  .am-button-ghost {
+    border: 1px solid #07c160;
+  }
+  .am-button-ghost::before {
+    border: 1px solid #07c160 !important;
+  }
+}
+
+.fanyi__result-content {
+  margin: 10px 12px;
+  white-space: pre-line;
+  background-color: #f2f2f2;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.fanyi__loading {
+  margin: 10px auto;
+  display: block;
+  width: 50px;
+  border-radius: 10px;
+}
