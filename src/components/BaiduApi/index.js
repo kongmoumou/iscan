@@ -46,13 +46,13 @@ const BaiduApiPreview = ({ data }) => {
                 padding: '0 3px',
                 backgroundColor: '#07c160',
                 borderRadius: 2,
+                marginRight: 12,
               }}
             />
             <Badge
               text={data?.score}
               style={{
                 padding: '0 3px',
-                marginLeft: 12,
                 backgroundColor: +data?.score > 0.5 ? '#10aeff' : '#ffc300',
                 borderRadius: 2,
               }}
