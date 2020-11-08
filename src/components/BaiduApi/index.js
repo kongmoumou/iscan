@@ -31,6 +31,9 @@ const res = {
 };
 
 const BaiduApiPreview = ({ data }) => {
+  const baikeImage = data?.baike_info?.image_url || '';
+  const proxyBaikeImage = baikeImage.split('/').slice(-1).pop();
+
   return (
     <div className="baidu-card__container">
       <div className="baidu-card__title">{data?.keyword}</div>
@@ -57,11 +60,11 @@ const BaiduApiPreview = ({ data }) => {
           </>
         }
       </div>
-      {/* {data?.baike_info?.image_url && (
+      {baikeImage && (
         <div className="baidu-card__image">
-          <img src={data?.baike_info?.image_url} />
+          <img src={`/api/bk?img=${proxyBaikeImage}`} />
         </div>
-      )} */}
+      )}
       {data?.baike_info?.description && (
         <div className="baidu-card__desc">{data?.baike_info?.description}</div>
       )}

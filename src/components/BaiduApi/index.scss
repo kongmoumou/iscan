@@ -13,3 +13,13 @@
 .baidu-card__label {
   margin-bottom: 5px;
 }
+
+.baidu-card__image {
+  margin: 0 12px 10px;
+  border-radius: 8px;
+
+  img {
+    display: block;
+    width: 100%;
+  }
+}
