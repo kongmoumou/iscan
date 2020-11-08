@@ -45,6 +45,9 @@
   "devDependencies": {
     "@ant-design/icons": "^4.2.2",
     "antd-mobile": "^2.3.4",
+    "crypto-js": "^4.0.0",
+    "jquery": "^3.5.1",
+    "lodash": "^4.17.20",
     "react-spinners": "^0.9.0",
     "react-use": "^15.3.4",
     "source-map-explorer": "^2.5.0",
