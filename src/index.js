@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
+import { CapturedImageProvider } from './stores/CapturedImage';
+import { CroppedImageProvider } from './stores/CroppedImage';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
@@ -13,7 +15,11 @@ process.env.NODE_ENV === 'development'
 
 ReactDOM.render(
   // <React.StrictMode>
-  <App />,
+  <CapturedImageProvider>
+    <CroppedImageProvider>
+      <App />
+    </CroppedImageProvider>
+  </CapturedImageProvider>,
   // </React.StrictMode>,
   document.getElementById('root')
 );
