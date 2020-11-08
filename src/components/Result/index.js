@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import './index.scss';
 import Portal from '../Portal';
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, RedoOutlined } from '@ant-design/icons';
 import { useSpring, useTransition, animated as a } from 'react-spring';
 import GridLoader from 'react-spinners/GridLoader';
+import { useCapturedImageCtx } from '../../stores/CapturedImage';
+import { useCroppedImageCtx } from '../../stores/CroppedImage';
 
 export const STATE = {
   LOADING: 'loading',
@@ -11,9 +13,18 @@ export const STATE = {
   ERROR: 'error',
 };
 
-export default function Result({ children, state = STATE.LOADING }) {
+const noop = () => {};
+
+export default function Result({
+  children,
+  state = STATE.LOADING,
+  onRetry = noop,
+}) {
   const [isShow, setIsShow] = useState(true);
   // const [state, setState] = useState(STATE.LOADING);
+
+  const { setCapturedImage } = useCapturedImageCtx();
+  const { setCroppedImage } = useCroppedImageCtx();
 
   const bgTransition = useTransition(isShow, null, {
     from: {
@@ -37,6 +48,10 @@ export default function Result({ children, state = STATE.LOADING }) {
     leave: {
       transform: 'translate3d(0, 100%, 0)',
     },
+    onDestroyed: () => {
+      setCapturedImage('');
+      setCroppedImage('');
+    },
   });
 
   const stateAnimation = useSpring(
@@ -49,9 +64,34 @@ export default function Result({ children, state = STATE.LOADING }) {
         }
   );
 
-  // if (!isShow) {
-  //   return null;
-  // }
+  const renderChildren = () => {
+    switch (state) {
+      case STATE.LOADING:
+        return (
+          <GridLoader
+            css={{ margin: 'auto' }}
+            size={10}
+            color="#181818"
+            className="result__spinner"
+          />
+        );
+      case STATE.ERROR:
+        return (
+          <div style={{ margin: 'auto', textAlign: 'center' }}>
+            <RedoOutlined
+              style={{ color: '#181818', fontSize: 40, marginBottom: 10 }}
+              onClick={() => {
+                onRetry();
+              }}
+            />
+            <div>出现了一些错误，请点击重试~</div>
+          </div>
+        );
+      case STATE.DONE:
+      default:
+        return children;
+    }
+  };
 
   return (
     <Portal>
@@ -74,18 +114,7 @@ export default function Result({ children, state = STATE.LOADING }) {
                   setIsShow(false);
                 }}
               />
-              <div className="result__content">
-                {state === STATE.LOADING ? (
-                  <GridLoader
-                    css={{ margin: 'auto' }}
-                    size={10}
-                    color="#181818"
-                    className="result__spinner"
-                  />
-                ) : (
-                  children
-                )}
-              </div>
+              <div className="result__content">{renderChildren()}</div>
             </a.div>
           )
       )}
