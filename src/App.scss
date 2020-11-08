@@ -6,7 +6,9 @@ body * {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -74,7 +76,7 @@ video {
     width: fit-content;
     font-weight: medium;
     color: rgb(117, 117, 117);
-    transition: color .15s ease-in-out;
+    transition: color 0.15s ease-in-out;
   }
   .swiper-slide-active {
     color: rgb(231, 231, 231);
@@ -110,7 +112,7 @@ video {
   border: 10px solid #dcdcdc;
   opacity: 1;
   visibility: visible;
-  transition: all .15s ease-in-out;
+  transition: all 0.15s ease-in-out;
 
   &.hidden {
     opacity: 0;
@@ -135,11 +137,19 @@ video {
   &.back {
     left: $margin;
   }
-
 }
 
 .cam-cropper {
   .cropper-container {
     height: 100% !important;
+  }
+}
+
+.cropped-img__container {
+  height: 100%;
+  display: flex;
+  overflow-y: auto;
+  img {
+    margin: auto;
   }
 }

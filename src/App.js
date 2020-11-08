@@ -35,6 +35,10 @@ import AnimeApi from './components/AnimeApi';
 import BaiduApi from './components/BaiduApi';
 import FanyiApi from './components/FanyiApi';
 
+// image congtext
+import { useCapturedImageCtx } from './stores/CapturedImage';
+import { useCroppedImageCtx } from './stores/CroppedImage';
+
 // Toast config
 Toast.config({ duration: 1, mask: false });
 
@@ -82,8 +86,17 @@ const WebcamCapture = ({
   const webcamRef = useRef(null);
   const cropperRef = useRef();
 
-  const [capturedImg, setCaptureImg] = useState();
-  const [croppedImg, setCroppedImg] = useState();
+  // const [capturedImg, setCaptureImg] = useState();
+  const {
+    capturedImage: capturedImg,
+    setCapturedImage: setCaptureImg,
+  } = useCapturedImageCtx();
+
+  // const [croppedImg, setCroppedImg] = useState();
+  const {
+    croppedImage: croppedImg,
+    setCroppedImage: setCroppedImg,
+  } = useCroppedImageCtx();
 
   const capture = useCallback(() => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -245,10 +258,12 @@ const WebcamCapture = ({
   if (croppedImg) {
     return (
       <>
+      <div className="cropped-img__container">
         <img src={croppedImg} style={{ width: '100%' }} />
-        <div>
+      </div>
+        {/* <div>
           <button onClick={handleBackClick}>back</button>
-        </div>
+        </div> */}
       </>
     );
   }
