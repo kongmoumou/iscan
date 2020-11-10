@@ -72,7 +72,9 @@ export default function AnimeApi({ img }) {
     >
       {!isValidating &&
         !!data?.data?.docs?.length &&
-        data.data.docs.map((doc, i) => <AnimePreview key={i} data={doc} />)}
+        data.data.docs
+          .filter((doc) => !doc.is_adult)
+          .map((doc, i) => <AnimePreview key={i} data={doc} />)}
       {error ? String(error) : null}
     </Result>
   );
