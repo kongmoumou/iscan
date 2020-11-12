@@ -258,9 +258,9 @@ const WebcamCapture = ({
   if (croppedImg) {
     return (
       <>
-      <div className="cropped-img__container">
-        <img src={croppedImg} style={{ width: '100%' }} />
-      </div>
+        <div className="cropped-img__container">
+          <img src={croppedImg} style={{ width: '100%' }} />
+        </div>
         {/* <div>
           <button onClick={handleBackClick}>back</button>
         </div> */}
@@ -379,7 +379,8 @@ function App() {
           spaceBetween={50}
           slidesPerView="auto"
           onSlideChange={(e) => {
-            window.navigator.vibrate(50);
+            typeof window.navigator.vibrate === 'function' &&
+              window.navigator.vibrate(50);
             console.log('slide change', e);
             apiComRef.current = apiList[e.activeIndex].component;
             setCurrentApi(e.activeIndex);
